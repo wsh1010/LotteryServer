@@ -1,5 +1,9 @@
 package lottery
 
+type AppVersion_ResponseData struct {
+	Version string `json:"version"`
+}
+
 // User data type
 type User_Sign_RequestData struct {
 	ID_Type  string `json:"id_type"` // kakao, app
@@ -41,6 +45,15 @@ type Coins_ResponseData struct {
 
 type Modify_UserInfo_RequestData struct {
 	Nick string `json:"nick"`
+}
+
+type Today_Number_ResponseData struct {
+	Number int    `json:"number"`
+	Time   string `json:"time"`
+}
+
+type AddCoins_RequestData struct {
+	Coins int `json:"coins"`
 }
 
 // Result data type

@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"sync"
 	"time"
 )
+
+var TodayNum Today_Number_ResponseData
 
 func RunningClient(wg *sync.WaitGroup, done chan int) {
 	if wg != nil {
@@ -21,6 +24,7 @@ func RunningClient(wg *sync.WaitGroup, done chan int) {
 
 	need_result := false
 	checkTime := time.Now()
+
 	for len(done) == 1 {
 		now := time.Now()
 		if need_result {
@@ -59,14 +63,27 @@ func RunningClient(wg *sync.WaitGroup, done chan int) {
 					checkTime = time.Now().Add(1 * time.Second)
 				}
 			}
-
+		}
+		testTime, _ := time.Parse(("2006-01-02 15"), TodayNum.Time)
+		if now.Hour()%12 == 0 {
+			if time.Now().Sub(testTime).Hours() > 1 {
+				setTodayLottoNum()
+			}
 		}
 
 		time.Sleep(500 * time.Millisecond)
 	}
 }
 
+func setTodayLottoNum() {
+	TodayNum.Time = time.Now().UTC().Format("2006-01-02 15")
+	rand.Seed(time.Now().UnixNano())
+	TodayNum.Number = rand.Intn(44) + 1
+	log.Println(TodayNum)
+}
+
 func initLotteryInfo(done chan int) {
+	setTodayLottoNum()
 	for len(done) == 1 {
 		url := fmt.Sprintf("https://www.dhlottery.co.kr/common.do?drwNo=%d&method=getLottoNumber", lotteryinfo.CurrRound)
 		resp, _ := http.Get(url)

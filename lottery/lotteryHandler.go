@@ -15,6 +15,19 @@ import (
 	"github.com/gofrs/uuid"
 )
 
+func Handler_getVersion() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			var data AppVersion_ResponseData
+			data.Version = AppVersion
+			responseBody, _ := json.Marshal(data)
+			w.WriteHeader(http.StatusOK)
+			w.Write(responseBody)
+		}
+	}
+}
+
 func Handler_userInfo() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -239,10 +252,60 @@ func Handler_userCoins() func(http.ResponseWriter, *http.Request) {
 			responseBody, _ := json.Marshal(data)
 			w.WriteHeader(result)
 			w.Write(responseBody)
+		case http.MethodPut:
+			var result int
+			var data AddCoins_RequestData
+			accept_uuid, exist_uuid := r.Header["Accept-Uuid"]
+			accept_id, exist_id := r.Header["Accept-Id"]
+			accept_type, exist_type := r.Header["Id-Type"]
+
+			if !(exist_uuid && exist_id && exist_type) {
+				w.WriteHeader(http.StatusNotAcceptable)
+				return
+			} else {
+				if !CheckIdAvailable(accept_id[0], accept_uuid[0], accept_type[0]) {
+					w.WriteHeader(http.StatusNotAcceptable)
+					return
+				} else {
+					body, err := ioutil.ReadAll(r.Body)
+					if err != nil {
+						log.Println(err)
+						w.WriteHeader(http.StatusNotImplemented)
+						return
+					} else {
+						json.Unmarshal(body, &data)
+						result = adduserCoins(accept_id[0], accept_type[0], data.Coins)
+					}
+				}
+			}
+			responseBody, _ := json.Marshal(data)
+			w.WriteHeader(result)
+			w.Write(responseBody)
 		}
 	}
 }
 
+func Handler_today() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			responseBody, _ := json.Marshal(TodayNum)
+			w.WriteHeader(http.StatusOK)
+			w.Write(responseBody)
+		}
+	}
+}
+
+func adduserCoins(user_id string, id_type string, coins int) int {
+	var query string
+	if id_type == "kakao" {
+		query = fmt.Sprintf("UPDATE `T_USER_INFO` SET `coins` = `coins` + %d WHERE `kakao_id` = '%s'; ", coins, user_id)
+	} else {
+		query = fmt.Sprintf("UPDATE `T_USER_INFO` SET `coins` = `coins` + %d WHERE `app_id` = '%s'; ", coins, user_id)
+	}
+	db.ExcuteQuery(query)
+	return http.StatusOK
+}
 func isComplete(user_id string, id_type string, round int) int {
 	var query string
 	if id_type == "kakao" {

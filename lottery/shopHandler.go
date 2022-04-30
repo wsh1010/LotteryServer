@@ -111,7 +111,7 @@ func Handler_price_image() func(http.ResponseWriter, *http.Request) {
 				w.WriteHeader(http.StatusNotImplemented)
 				return
 			}
-			dirname := "./item"
+			dirname := "./price"
 			os.MkdirAll(dirname, 0777)
 			filepath := fmt.Sprintf("%s/%s", dirname, header.Filename)
 			file, err := os.Create(filepath)

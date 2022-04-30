@@ -12,7 +12,7 @@ var Mysql *sql.DB
 
 func InitDB() bool {
 	var err error
-	Mysql, err = sql.Open("mysql", "poker:fake@tcp(localhost:3306)/lottery")
+	Mysql, err = sql.Open("mysql", "poker:fake@tcp(152.67.216.2:3306)/lottery")
 	if err != nil {
 		log.Println("[Error]Failed to connect DB : ", err)
 		return false
@@ -20,6 +20,7 @@ func InitDB() bool {
 	Mysql.SetConnMaxLifetime(time.Minute * 3)
 	Mysql.SetMaxOpenConns(10)
 	Mysql.SetMaxIdleConns(10)
+	log.Println("connect DB")
 	return true
 }
 
@@ -58,7 +59,7 @@ func ExcuteQuery(query string) (int64, error) {
 func CheckPing() error {
 	var err error
 	if Mysql == nil {
-		Mysql, err = sql.Open("mysql", "poker:fake@tcp(localhost:3306)/lottery")
+		Mysql, err = sql.Open("mysql", "poker:fake@tcp(152.67.216.2:3306)/lottery")
 		if err != nil {
 			return err
 		}
